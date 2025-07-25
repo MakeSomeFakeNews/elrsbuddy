@@ -1,684 +1,1135 @@
 <!DOCTYPE HTML>
-<html>
+<html lang="zh-CN">
 <head>
-<title>ELRS Buddy</title>
-<link rel="icon" type="image/png" href="favicon.png">
-<script src="wasmoon-web.js" type="text/javascript" async></script>
-<script src="elrsV3.lua" type="application/lua" async></script>
-<style>
-button {
-	width: 100%;
-	height: 100%;
-	font-size: large;
-}
-a {
-	color: white;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELRS Buddy</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="wasmoon-web.js" type="text/javascript" async></script>
+    <script src="elrsV3.lua" type="application/lua" async></script>
+    <style>
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f8f9fa;
+            --accent-primary: #0066cc;
+            --accent-hover: #0052a3;
+            --accent-success: #00c853;
+            --accent-warning: #ff6d00;
+            --accent-error: #d32f2f;
+            --text-primary: #1a1a1a;
+            --text-secondary: #5f6368;
+            --text-tertiary: #80868b;
+            --border-color: #e8eaed;
+            --border-color-light: #f1f3f4;
+            --shadow-sm: 0 1px 2px 0 rgba(60, 64, 67, 0.1), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+            --shadow-md: 0 1px 3px 0 rgba(60, 64, 67, 0.15), 0 4px 8px 3px rgba(60, 64, 67, 0.1);
+            --shadow-lg: 0 2px 6px 2px rgba(60, 64, 67, 0.15), 0 8px 24px 4px rgba(60, 64, 67, 0.1);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --radius-lg: 16px;
+            --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', Consolas, 'Courier New', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family), serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+            overflow: hidden;
+            line-height: 1.5;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: auto 1fr auto;
+            height: 100vh;
+            gap: 0;
+            background: var(--bg-primary);
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            backdrop-filter: blur(10px);
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-right: 2rem;
+        }
+
+        .brand-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        .brand-version {
+            font-size: 0.75rem;
+            color: var(--accent-primary);
+            background: rgba(0, 102, 204, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            border: 1px solid rgba(0, 102, 204, 0.2);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 40px;
+            white-space: nowrap;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: var(--accent-primary);
+            color: white;
+            background-image: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--border-color-light);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            background: var(--bg-tertiary);
+            color: var(--text-tertiary);
+        }
+
+        .select {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            min-height: 40px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+            background: var(--bg-secondary);
+        }
+
+        .status-bar {
+            margin-left: auto;
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-family: var(--font-mono);
+            min-width: 240px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            font-weight: 500;
+        }
+
+        .lcd-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background: var(--bg-primary);
+            position: relative;
+            overflow: hidden;
+            background-image: radial-gradient(circle at 20% 20%, rgba(0, 102, 204, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(0, 102, 204, 0.03) 0%, transparent 50%);
+        }
+
+        .lcd-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 20%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(0, 255, 136, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .lcd-container {
+            position: relative;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: 0 0 0 1px var(--border-color),
+            0 8px 32px rgba(0, 0, 0, 0.12),
+            0 32px 64px rgba(0, 0, 0, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .lcd-container:hover {
+            box-shadow: 0 0 0 1px var(--border-color),
+            0 12px 48px rgba(0, 0, 0, 0.15),
+            0 48px 96px rgba(0, 0, 0, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .lcd-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.08) 0%,
+                    transparent 30%,
+                    transparent 70%,
+                    rgba(0, 0, 0, 0.12) 100%
+            );
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #lcd {
+            display: block;
+            border-radius: var(--radius-lg);
+            max-width: 100%;
+            height: auto;
+        }
+
+        .log-section {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            height: 280px;
+            flex-shrink: 0;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .log-header {
+            background: var(--bg-tertiary);
+            padding: 0.75rem 1.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+
+        #log {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            font-size: 0.8125rem;
+            line-height: 1.5;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: var(--bg-primary);
+        }
+
+        #log::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #log::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        #log::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+            transition: background 0.2s ease;
+        }
+
+        #log::-webkit-scrollbar-thumb:hover {
+            background: var(--text-tertiary);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .controls {
+                flex-wrap: wrap;
+                gap: 0.75rem;
+                justify-content: center;
+                order: 3;
+                width: 100%;
+            }
+
+            .brand {
+                margin-right: 0;
+                flex: 1;
+            }
+
+            .status-bar {
+                margin-left: 0;
+                min-width: auto;
+                font-size: 0.8125rem;
+                padding: 0.5rem 1rem;
+            }
+
+            .lcd-section {
+                padding: 1rem;
+            }
+
+            .btn, .select {
+                font-size: 0.875rem;
+                padding: 0.625rem 1rem;
+                min-height: 36px;
+            }
+
+            .log-section {
+                height: 240px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 0.75rem;
+                gap: 0.75rem;
+            }
+
+            .controls {
+                justify-content: center;
+                gap: 0.5rem;
+            }
+
+            .brand {
+                text-align: center;
+                margin-right: 0;
+                margin-bottom: 0.25rem;
+            }
+
+            .brand-title {
+                font-size: 1.25rem;
+            }
+
+            .lcd-section {
+                padding: 0.75rem;
+            }
+
+            #lcd {
+                width: 100%;
+                height: auto;
+                max-width: 100%;
+                border-radius: var(--radius);
+            }
+
+            .lcd-container {
+                border-radius: var(--radius);
+            }
+
+            .btn, .select {
+                font-size: 0.8125rem;
+                padding: 0.5rem 0.75rem;
+            }
+
+            .log-section {
+                height: 200px;
+            }
+
+            #log {
+                padding: 0.75rem;
+                font-size: 0.75rem;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .header {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .lcd-section {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .log-section {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(0) scale(0.98);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover:not(:disabled)::before {
+            left: 100%;
+        }
+    </style>
 </head>
-<body style="font-family:Roboto,-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;">
-<div style="display:flex; flex-direction:column; position:absolute; top:0; bottom:0; left:0; right:0; background-color:#5f8bf3;">
-	<div style="display:flex;">
-		<div style="width:640px;">
-			<div style="display:flex;">
-				<button id="pair">pair device</button>
-				<select id="baud" size="1" disabled="disabled">
-					<option value="921600" selected="selected">921600 bps</option>
-					<option value="460800">460800 bps</option>
-					<option value="230400">230400 bps</option>
-					<option value="115200">115200 bps</option>
-				</select>
-				<button id="connect" disabled="disabled">connect</button>
-				<button id="start" disabled="disabled">(re)start</button>
-			</div>
-			<div id="crsfstatus" style="text-align: center;"></div>
-			<canvas id="lcd" width="480" height="272" style="display:block; margin-left:auto; margin-right:auto;"></canvas>
-		</div>
-		<div style="margin: auto;">
-			<div style="color:white; font-size:1.5em; font-weight:bold; margin:auto; display:flex">
-				<div><img src="logotype.svg" style="padding:0.3em;"></div>
-				<div style="margin:auto;"><div>ELRS Buddy</div><div style="font-size:0.5em; font-weight:normal; text-align:right;">v1.0.4</div></div>
-			</div>
-			<div style="text-align: center;">
-				<a target="_blank" href="https://youtube.com/playlist?list=PL5blJzbVpLjFwGb_-_IBfnscjPwTEA98u">Introduction / Howto</a>
-			</div>
-		</div>
-	</div>
-	<div style="border:1px solid black; height:100%; overflow:auto; display:flex; flex-direction:column-reverse; margin-top:auto; background:linear-gradient(to bottom,#5f8bf3,#9ec670);">
-		<pre id="log"></pre>
-	</div>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="brand">
+            <div class="brand-title">ELRS Buddy</div>
+            <div class="brand-version">v1.0.4</div>
+        </div>
+        <div class="controls">
+            <button id="pair" class="btn btn-primary">配对设备</button>
+            <select id="baud" class="select" disabled>
+                <option value="921600">921600 bps</option>
+                <option value="460800" selected>460800 bps</option>
+                <option value="230400">230400 bps</option>
+                <option value="115200">115200 bps</option>
+            </select>
+            <button id="connect" class="btn btn-secondary" disabled>连接</button>
+            <button id="start" class="btn btn-secondary" disabled>重新连接</button>
+        </div>
+        <div class="status-bar" id="crsfstatus"></div>
+    </div>
+
+    <div class="lcd-section">
+        <div class="lcd-container">
+            <canvas id="lcd" width="480" height="272"></canvas>
+        </div>
+    </div>
+
+    <div class="log-section">
+        <div class="log-header">系统日志</div>
+        <pre id="log"></pre>
+    </div>
 </div>
 </body>
 <script type="application/lua" id="edgetx">
-	model = {
-		getModule = function (modIdx)
-			local module = {}
-			module.Type = 5
-			return module
-		end;
-	}
-	lcd = {
-		clear = function (color)
-			print("LCD:CLEAR")
-		end;
-		drawLine = function (x1, y1, x2, y2, pattern, flags)
-			print("LCD:DRAWLINE")
-		end;
-		drawGauge = function (x, y, w, h, fill, maxfill, flags)
-			if maxfill ~= nil and maxfill ~= 0 and fill ~= nil then
-				print(string.format("GAUGE %.2f %%", (fill/maxfill)*100.0))
-			end
-		end;
-		drawRectangle = function (x, y, w, h, flags, t)
-			print("LCD:DRAWRECT")
-		end;
-		drawFilledRectangle = function (x, y, w, h, flags)
-			print("LCD:DRAWFRECT")
-		end;
-		drawText = function (x, y, text, flags, inversColor)
-			print("LCD: " .. text)
-		end;
-		setColor = function (colorIndex, color)
-			print("LCD:SETCOLOR")
-		end;
-		getLastPos = function ()
-			return 1
-		end
-	}
+    model = {
+        getModule = function (modIdx)
+            local module = {}
+            module.Type = 5
+            return module
+        end;
+    }
+    lcd = {
+        clear = function (color)
+            print("LCD:CLEAR")
+        end;
+        drawLine = function (x1, y1, x2, y2, pattern, flags)
+            print("LCD:DRAWLINE")
+        end;
+        drawGauge = function (x, y, w, h, fill, maxfill, flags)
+            if maxfill ~= nil and maxfill ~= 0 and fill ~= nil then
+                print(string.format("GAUGE %.2f %%", (fill/maxfill)*100.0))
+            end
+        end;
+        drawRectangle = function (x, y, w, h, flags, t)
+            print("LCD:DRAWRECT")
+        end;
+        drawFilledRectangle = function (x, y, w, h, flags)
+            print("LCD:DRAWFRECT")
+        end;
+        drawText = function (x, y, text, flags, inversColor)
+            print("LCD: " .. text)
+        end;
+        setColor = function (colorIndex, color)
+            print("LCD:SETCOLOR")
+        end;
+        getLastPos = function ()
+            return 1
+        end
+    }
 
-	bit32 = {
-		band = function (a,b)
-			return(a&b)
-		end;
-		bor = function (a,b)
-			return(a|b)
-		end;
-		lshift = function (a,b)
-			return(a<<b)
-		end;
-		rshift = function (a,b)
-			return(a>>b)
-		end;
-		btest = function (a,b)
-			return(a&b~=0)
-		end;
-	}
+    bit32 = {
+        band = function (a,b)
+            return(a&b)
+        end;
+        bor = function (a,b)
+            return(a|b)
+        end;
+        lshift = function (a,b)
+            return(a<<b)
+        end;
+        rshift = function (a,b)
+            return(a>>b)
+        end;
+        btest = function (a,b)
+            return(a&b~=0)
+        end;
+    }
 
-	CRSF_IN = {}
-	CRSF_OUT = {}
-	ELRS_LOAD = {}
+    CRSF_IN = {}
+    CRSF_OUT = {}
+    ELRS_LOAD = {}
 
-	function getVersion ()
-		return "2.9.4", "pclua4elrs", 2, 9, 4, "EdgeTX"
-	end
+    function getVersion ()
+        return "2.9.4", "pclua4elrs", 2, 9, 4, "EdgeTX"
+    end
 
-	function popupConfirmation (t, m, e)
-		print(string.format("[%q] %s: %s", t, m, e))
-		return "CANCEL"
-	end
+    function popupConfirmation (t, m, e)
+        print(string.format("[%q] %s: %s", t, m, e))
+        return "CANCEL"
+    end
 
-	function crossfireTelemetryPush (cmd, data)
-		if cmd == nil or data == nil then
-			-- frame being collected for CRSF transmission
-			success, cmd, data = pcall(function () return table.unpack(table.remove(CRSF_OUT)) end)
-			if success == false then
-				return nil
-			end
-			return cmd, data
-		else
-			-- frame being pushed for later transmission
-			table.insert(CRSF_OUT, 1, {cmd, data})
-			return true
-		end
-	end
+    function crossfireTelemetryPush (cmd, data)
+        if cmd == nil or data == nil then
+            -- frame being collected for CRSF transmission
+            success, cmd, data = pcall(function () return table.unpack(table.remove(CRSF_OUT)) end)
+            if success == false then
+                return nil
+            end
+            return cmd, data
+        else
+            -- frame being pushed for later transmission
+            table.insert(CRSF_OUT, 1, {cmd, data})
+            return true
+        end
+    end
 
-	function crossfireTelemetryPop (cmd, data)
-		if cmd ~= nil and data ~= nil then
-			-- frame arrived from the CRSF link
-			table.insert(CRSF_IN, 1, {cmd, data})
-			return true
-		else
-			-- frame being collected for processing
-			success, cmd, data = pcall(function () return table.unpack(table.remove(CRSF_IN)) end)
-			if success == false then
-				return nil
-			end
-			return cmd, data
-		end
-	end
-	
-	function crossfireTelemetryFlush ()
-		CRSF_IN = {}
-		CRSF_OUT = {}
-	end
-	
-	function multiret (fname, ...)
-		local f = _G[fname]
-		if f == nil then return nil end
-		return table.pack(f(...))
-	end
-	
-	function loadelrs ()
-		ELRS_LOAD = loadfile('elrsV3.lua')
-		return ELRS_LOAD
-	end
-	
-	LCD_W = 480
-	LCD_H = 272
-	CHAR_UP = '+'
-	CHAR_DOWN = '-'
-	EVT_VIRTUAL_ENTER = 1
-	EVT_VIRTUAL_EXIT = 2
-	EVT_VIRTUAL_NEXT = 4
-	EVT_VIRTUAL_PREV = 8
-	CENTER = 16
-	RIGHT = 32
-	BOLD = 64
-	SOLID = 128
-	INVERS = 256
-	BLINK = 512
-	CUSTOM_COLOR = 1024
-	BLACK = 2048
-	WHITE = 4096
-	GREY_DEFAULT = 8192
+    function crossfireTelemetryPop (cmd, data)
+        if cmd ~= nil and data ~= nil then
+            -- frame arrived from the CRSF link
+            table.insert(CRSF_IN, 1, {cmd, data})
+            return true
+        else
+            -- frame being collected for processing
+            success, cmd, data = pcall(function () return table.unpack(table.remove(CRSF_IN)) end)
+            if success == false then
+                return nil
+            end
+            return cmd, data
+        end
+    end
+
+    function crossfireTelemetryFlush ()
+        CRSF_IN = {}
+        CRSF_OUT = {}
+    end
+
+    function multiret (fname, ...)
+        local f = _G[fname]
+        if f == nil then return nil end
+        return table.pack(f(...))
+    end
+
+    function loadelrs ()
+        ELRS_LOAD = loadfile('elrsV3.lua')
+        return ELRS_LOAD
+    end
+
+    LCD_W = 480
+    LCD_H = 272
+    CHAR_UP = '+'
+    CHAR_DOWN = '-'
+    EVT_VIRTUAL_ENTER = 1
+    EVT_VIRTUAL_EXIT = 2
+    EVT_VIRTUAL_NEXT = 4
+    EVT_VIRTUAL_PREV = 8
+    CENTER = 16
+    RIGHT = 32
+    BOLD = 64
+    SOLID = 128
+    INVERS = 256
+    BLINK = 512
+    CUSTOM_COLOR = 1024
+    BLACK = 2048
+    WHITE = 4096
+    GREY_DEFAULT = 8192
 </script>
 <script>
-lcd = {
-	'strokeStyle': function (flags) {
-		if ((flags & lcd.INVERS) == lcd.INVERS) {
-			lcd.ctx.strokeStyle = '#ffffff';
-		} else if ((flags & lcd.CUSTOM_COLOR) == lcd.CUSTOM_COLOR) {
-			lcd.ctx.strokeStyle = lcd.COLOR_CUSTOM;
-		} else {
-			lcd.ctx.strokeStyle = '#000000';
-		}
-		if (lcd.debug) console.log(`strokeStyle ${lcd.ctx.strokeStyle}`);
-	},
-	'fillStyle': function (flags) {
-		if ((flags & lcd.INVERS) == lcd.INVERS) {
-			lcd.ctx.fillStyle = '#ffffff';
-		} else if ((flags & lcd.CUSTOM_COLOR) == lcd.CUSTOM_COLOR) {
-			lcd.ctx.fillStyle = lcd.COLOR_CUSTOM;
-		} else {
-			lcd.ctx.fillStyle = '#000000';
-		}
-		if (lcd.debug) console.log(`fillStyle ${lcd.ctx.fillStyle}`);
-	},
-	'textConfig': function (flags) {
-		var fontflags = []
-		if ((flags & lcd.RIGHT) == lcd.RIGHT) {
-			lcd.ctx.textAlign = 'right';
-		} else {
-			lcd.ctx.textAlign = 'left';
-		}
-		if ((flags & lcd.BLINK) == lcd.BLINK) {
-			fontflags.push('italic');
-		}
-		if ((flags & lcd.BOLD) == lcd.BOLD) {
-			fontflags.push('bold');
-		}
-		fontflags.push(lcd.font);
-		lcd.ctx.font = fontflags.join(' ');
-		if (lcd.debug) console.log(`textAlign ${lcd.ctx.textAlign} font ${lcd.ctx.font}`);
-	},
-	'clear': function (color) {
-		if (lcd.debug) console.log('clear');
-		lcd.ctx.reset();
-		lcd.lastpos = 0;
-		lcd.ctx.font = lcd.font;
-		lcd.ctx.textBaseline = 'top';
-		lcd.ctx.lineWidth = 2;
-	},
-	'drawLine': function (x1, y1, x2, y2, pattern, flags) {
-		if (lcd.debug) console.log(`drawLine ${flags}`);
-		lcd.ctx.beginPath();
-		lcd.ctx.moveTo(x1, y1);
-		lcd.ctx.lineTo(x2, y2);
-		lcd.ctx.closePath();
-		lcd.strokeStyle(flags);
-		lcd.ctx.stroke();
-		lcd.lastpos = x2;
-	},
-	'drawGauge': function (x, y, w, h, fill, maxfill, flags) {
-		const fillwidth = Math.floor((fill/maxfill)*w);
-		lcd.ctx.clearRect(x, y, w, h);
-		lcd.fillStyle(flags);
-		lcd.ctx.fillRect(x, y, fillwidth, h);
-		lcd.lastpos = x + w;
-	},
-	'drawRectangle': function (x, y, w, h, flags, t) {
-		lcd.strokeStyle(flags);
-		lcd.ctx.strokeRect(x, y, w, h);
-		lcd.lastpos = x + w;
-		if (lcd.debug) console.log(`drawRectangle ${flags}`);
-	},
-	'drawFilledRectangle': function (x, y, w, h, flags) {
-		lcd.fillStyle(flags);
-		lcd.ctx.fillRect(x, y, w, h);
-		lcd.lastpos = x + w;
-		if (lcd.debug) console.log(`drawFilledRectangle ${flags}`);
-	},
-	'drawText': function (x, y, text, flags, inversColor) {
-		if (lcd.debug) console.log(`drawText ${flags} ${text}`);
-		lcd.textConfig(flags);
-		const tmetrics = lcd.ctx.measureText(text);
-		const boundw = Math.round(tmetrics.actualBoundingBoxLeft + tmetrics.actualBoundingBoxRight);
-		const boundh = Math.round(tmetrics.actualBoundingBoxAscent + tmetrics.actualBoundingBoxDescent);
-		if ((flags & lcd.INVERS) == lcd.INVERS) {
-			lcd.fillStyle(0);
-			lcd.ctx.fillRect(x-1, y, boundw+4, 22);
-		}
-		lcd.fillStyle(flags);
-		lcd.ctx.fillText(text, x, y);
-		lcd.lastpos = x + boundw;
-	},
-	'RGB': function (r, g, b) {
-		if (r === undefined) return;
-		if (g === undefined) return;
-		return `rgb(${r},${g},${b})`;
-	},
-	'setColor': function (colorIndex, color) {
-		if (colorIndex != lcd.CUSTOM_COLOR) return;
-		switch (color) {
-		case lcd.BLACK:
-			color = 'black';
-			break;
-		case lcd.WHITE:
-			color = 'white';
-			break;
-		}
-		lcd.COLOR_CUSTOM = color;
-		if (lcd.debug) console.log(`COLOR_CUSTOM: ${color}`);
-	},
-	'sizeText': function (text, flags) {
-		lcd.textConfig(flags);
-		const tmetrics = lcd.ctx.measureText(text);
-		const boundw = Math.round(tmetrics.actualBoundingBoxLeft + tmetrics.actualBoundingBoxRight);
-		return boundw;
-	},
-	'getLastPos': function () {
-		return lcd.lastpos;
-	},
-	'lastpos': 0,
-	'ctx': null,
-	'font': '16px "Noto Sans", Roboto, sans-serif',
-	'COLOR_CUSTOM': '#000000',
-	'debug': false
-}
+    lcd = {
+        'strokeStyle': function (flags) {
+            if ((flags & lcd.INVERS) === lcd.INVERS) {
+                lcd.ctx.strokeStyle = '#ffffff';
+            } else if ((flags & lcd.CUSTOM_COLOR) === lcd.CUSTOM_COLOR) {
+                lcd.ctx.strokeStyle = lcd.COLOR_CUSTOM;
+            } else {
+                lcd.ctx.strokeStyle = '#000000';
+            }
+            if (lcd.debug) console.log(`strokeStyle ${lcd.ctx.strokeStyle}`);
+        },
+        'fillStyle': function (flags) {
+            if ((flags & lcd.INVERS) === lcd.INVERS) {
+                lcd.ctx.fillStyle = '#ffffff';
+            } else if ((flags & lcd.CUSTOM_COLOR) === lcd.CUSTOM_COLOR) {
+                lcd.ctx.fillStyle = lcd.COLOR_CUSTOM;
+            } else {
+                lcd.ctx.fillStyle = '#000000';
+            }
+            if (lcd.debug) console.log(`fillStyle ${lcd.ctx.fillStyle}`);
+        },
+        'textConfig': function (flags) {
+            var fontflags = []
+            if ((flags & lcd.RIGHT) === lcd.RIGHT) {
+                lcd.ctx.textAlign = 'right';
+            } else {
+                lcd.ctx.textAlign = 'left';
+            }
+            if ((flags & lcd.BLINK) === lcd.BLINK) {
+                fontflags.push('italic');
+            }
+            if ((flags & lcd.BOLD) === lcd.BOLD) {
+                fontflags.push('bold');
+            }
+            fontflags.push(lcd.font);
+            lcd.ctx.font = fontflags.join(' ');
+            if (lcd.debug) console.log(`textAlign ${lcd.ctx.textAlign} font ${lcd.ctx.font}`);
+        },
+        'clear': function () {
+            if (lcd.debug) console.log('clear');
+            lcd.ctx.reset();
+            lcd.lastpos = 0;
+            lcd.ctx.font = lcd.font;
+            lcd.ctx.textBaseline = 'top';
+            lcd.ctx.lineWidth = 2;
+        },
+        'drawLine': function (x1, y1, x2, y2, pattern, flags) {
+            if (lcd.debug) console.log(`drawLine ${flags}`);
+            lcd.ctx.beginPath();
+            lcd.ctx.moveTo(x1, y1);
+            lcd.ctx.lineTo(x2, y2);
+            lcd.ctx.closePath();
+            lcd.strokeStyle(flags);
+            lcd.ctx.stroke();
+            lcd.lastpos = x2;
+        },
+        'drawGauge': function (x, y, w, h, fill, maxfill, flags) {
+            const fillwidth = Math.floor((fill / maxfill) * w);
+            lcd.ctx.clearRect(x, y, w, h);
+            lcd.fillStyle(flags);
+            lcd.ctx.fillRect(x, y, fillwidth, h);
+            lcd.lastpos = x + w;
+        },
+        'drawRectangle': function (x, y, w, h, flags) {
+            lcd.strokeStyle(flags);
+            lcd.ctx.strokeRect(x, y, w, h);
+            lcd.lastpos = x + w;
+            if (lcd.debug) console.log(`drawRectangle ${flags}`);
+        },
+        'drawFilledRectangle': function (x, y, w, h, flags) {
+            lcd.fillStyle(flags);
+            lcd.ctx.fillRect(x, y, w, h);
+            lcd.lastpos = x + w;
+            if (lcd.debug) console.log(`drawFilledRectangle ${flags}`);
+        },
+        'drawText': function (x, y, text, flags) {
+            if (lcd.debug) console.log(`drawText ${flags} ${text}`);
+            lcd.textConfig(flags);
+            const tmetrics = lcd.ctx.measureText(text);
+            const boundw = Math.round(tmetrics.actualBoundingBoxLeft + tmetrics.actualBoundingBoxRight);
+            const boundh = Math.round(tmetrics.actualBoundingBoxAscent + tmetrics.actualBoundingBoxDescent);
+            if ((flags & lcd.INVERS) == lcd.INVERS) {
+                lcd.fillStyle(0);
+                lcd.ctx.fillRect(x - 1, y, boundw + 4, 22);
+            }
+            lcd.fillStyle(flags);
+            lcd.ctx.fillText(text, x, y);
+            lcd.lastpos = x + boundw;
+        },
+        'RGB': function (r, g, b) {
+            if (r === undefined) return;
+            if (g === undefined) return;
+            return `rgb(${r},${g},${b})`;
+        },
+        'setColor': function (colorIndex, color) {
+            if (colorIndex !== lcd.CUSTOM_COLOR) return;
+            switch (color) {
+                case lcd.BLACK:
+                    color = 'black';
+                    break;
+                case lcd.WHITE:
+                    color = 'white';
+                    break;
+            }
+            lcd.COLOR_CUSTOM = color;
+            if (lcd.debug) console.log(`COLOR_CUSTOM: ${color}`);
+        },
+        'sizeText': function (text, flags) {
+            lcd.textConfig(flags);
+            const tmetrics = lcd.ctx.measureText(text);
+            return Math.round(tmetrics.actualBoundingBoxLeft + tmetrics.actualBoundingBoxRight);
+        },
+        'getLastPos': function () {
+            return lcd.lastpos;
+        },
+        'lastpos': 0,
+        'ctx': null,
+        'font': '16px "Noto Sans", Roboto, sans-serif',
+        'COLOR_CUSTOM': '#000000',
+        'debug': false
+    }
 
-function get_uptime () {
-	return Math.round(window.performance.now() / 10);
-}
+    function get_uptime() {
+        return Math.round(window.performance.now() / 10);
+    }
 
-function try_tag (tag) {
-	const contentTypeRegexp = /^(.*?\/.*?)([\t ]*;.*)?$/;
-	if (tag.tagName !== "SCRIPT")
-		return;
-	let contentTypeMatch = contentTypeRegexp.exec(tag.type);
-	if (!contentTypeMatch)
-		return;
-	let mimetype = contentTypeMatch[1];
-	if (mimetype !== "application/lua" && mimetype !== "text/lua")
-		return;
-	if (tag.src)
-		return;
-	window.lua.doStringSync(tag.innerHTML);
-};
+    function try_tag(tag) {
+        const contentTypeRegexp = /^(.*?\/.*?)([\t ]*;.*)?$/;
+        if (tag.tagName !== "SCRIPT")
+            return;
+        let contentTypeMatch = contentTypeRegexp.exec(tag.type);
+        if (!contentTypeMatch)
+            return;
+        let mimetype = contentTypeMatch[1];
+        if (mimetype !== "application/lua" && mimetype !== "text/lua")
+            return;
+        if (tag.src)
+            return;
+        window.lua.doStringSync(tag.innerHTML);
+    }
 
-function llog (msg) {
-	console.log(msg);
-}
+    function llog(msg) {
+        console.log(msg);
+    }
 
-function portstr (info) {
-	let str = '';
-	if (info.usbVendorId) {
-		str += info.usbVendorId;
-	} else {
-		str += '0';
-	}
-	str += ':';
-	if (info.usbProductId) {
-		str += info.usbProductId;
-	} else {
-		str += '0';
-	}
-	return str;
-}
+    function portstr(info) {
+        let str = '';
+        if (info.usbVendorId) {
+            str += info.usbVendorId;
+        } else {
+            str += '0';
+        }
+        str += ':';
+        if (info.usbProductId) {
+            str += info.usbProductId;
+        } else {
+            str += '0';
+        }
+        return str;
+    }
 
-function loadpairedports (verbose=true) {
-	navigator.serial.getPorts().then((ports) => {
-		let info;
-		let npairedport = null;
-		for (port of ports) {
-			info = port.getInfo();
-			if (pairedport != null && pairedport.port == port) return;
-			const str = portstr(info);
-			npairedport = {
-				port: port,
-				info: str
-			};
-			if (verbose) llog(`device ${str} found`);
-			break;
-		}
-		pairedport = npairedport;
-		if (pairedport != null) {
-			pairbutton.innerHTML = 'unpair ' + pairedport.info;
-			baudselect.disabled = false;
-			connbutton.disabled = false;
-			connbutton.innerHTML = 'connect';
-		} else {
-			pairbutton.innerHTML = 'pair device';
-			baudselect.disabled = true;
-			connbutton.disabled = true;
-			connbutton.innerHTML = 'connect';
-		}
-	});
-}
+    function loadpairedports(verbose = true) {
+        navigator.serial.getPorts().then((ports) => {
+            let npairedport = null;
+            for (let port of ports) {
+                const info = port.getInfo();
+                if (pairedport && pairedport.port === port) return;
 
-function edgetx_popupConfirmation (title, message, event) {
-	const ret = popup_status.return;
-	popup_status.title = title;
-	popup_status.message = message;
-	popup_status.visible = true;
-	if (ret != null) {
-		popup_status.return = null;
-		return ret;
-	}
-}
+                const str = portstr(info);
+                npairedport = {port, info: str};
+                if (verbose) llog(`device ${str} found`);
+                break;
+            }
 
-function elrsrun (key = 0) {
-	popup_status.visible = false;
-	if (elrs.run(key) != 0) {
-		llog('ELRS Lua exited!');
-		crossfireFlush();
-		elrsrefresh(true);
-		elrs = null;
-		return;
-	}
-	ret = multiret('crossfireTelemetryPush');
-	if (ret[1] !== undefined) {
-		comworker.postMessage(['crsfsend', ret[1], ret[2]]);
-	}
-	if (popup_status.visible) {
-		llog(`popup ${popup_status.title}: ${popup_status.message}`);
-	}
-}
+            pairedport = npairedport;
+            const $pairBtn = $('#pair');
+            const $baudSelect = $('#baud');
+            const $connBtn = $('#connect');
 
-function elrsrefresh (clear=false) {
-	if (elrsinterval == null) {
-		if (clear) return;
-		elrsinterval = setInterval(elrsrefresh, 100);
-	} else if (clear) {
-		clearInterval(elrsinterval);
-		elrsinterval = null;
-		return;
-	}
-	elrsrun();
-}
+            if (pairedport) {
+                $pairBtn.html('取消配对 ' + pairedport.info);
+                $baudSelect.prop('disabled', false);
+                $connBtn.prop('disabled', false).html('连接');
+            } else {
+                $pairBtn.html('配对设备');
+                $baudSelect.prop('disabled', true);
+                $connBtn.prop('disabled', true).html('连接');
+            }
+        });
+    }
 
-async function boot () {
-	const lua = await wasmoon.factory.createEngine();
-	window.lua = lua;
-	lua.global.set('getTime', get_uptime);
-	const selector = 'script[type^="application/lua"], script[type^="text/lua"]';
-	Array.prototype.forEach.call(document.querySelectorAll(selector), try_tag);
-	if (elrs_load === true) {
-		console.debug('elrs_load=1 boot');
-		elrs_load = await window.lua.doString('return loadelrs()');
-	} else {
-		elrs_load = true;
-	}
-	crossfirePop = lua.global.get('crossfireTelemetryPop');
-	crossfireFlush = lua.global.get('crossfireTelemetryFlush');
-	multiret = lua.global.get('multiret');
-	const logelem = document.getElementById("log");
-	if (logelem) {
-		llog = function (msg) {
-			const tm = get_uptime();
-			logelem.append(`${tm} ${msg}\n`);
-		}
-	}
-	loadpairedports();
-	lcd.ctx = document.getElementById('lcd').getContext('2d');
-	lcd.clear();
-	lcd.INVERS = lua.global.get('INVERS');
-	lcd.RIGHT = lua.global.get('RIGHT');
-	lcd.CENTER = lua.global.get('CENTER');
-	lcd.BOLD = lua.global.get('BOLD');
-	lcd.BLINK = lua.global.get('BLINK');
-	lcd.SOLID = lua.global.get('SOLID');
-	lcd.BLACK = lua.global.get('BLACK');
-	lcd.WHITE = lua.global.get('WHITE');
-	lcd.CUSTOM_COLOR = lua.global.get('CUSTOM_COLOR');
-	lua.global.set('lcd', lcd);
-	lua.global.set('popupConfirmation', edgetx_popupConfirmation);
-	let key = lua.global.get('EVT_VIRTUAL_ENTER');
-	keymap[13] = key; // Enter
-	keymap[39] = key; // Right
-	keymap[76] = key; // l
-	key = lua.global.get('EVT_VIRTUAL_EXIT');
-	keymap[8] = key; // Backspace
-	keymap[27] = key; // Escape
-	keymap[37] = key; // Left
-	keymap[72] = key; // h
-	key = lua.global.get('EVT_VIRTUAL_PREV');
-	keymap[38] = key; // Up
-	keymap[74] = key; // j
-	key = lua.global.get('EVT_VIRTUAL_NEXT');
-	keymap[40] = key; // Down
-	keymap[75] = key; // k
-}
+    function edgetx_popupConfirmation(title, message) {
+        const ret = popup_status.return;
+        popup_status.title = title;
+        popup_status.message = message;
+        popup_status.visible = true;
+        if (ret != null) {
+            popup_status.return = null;
+            return ret;
+        }
+    }
 
-elrs_load = null;
-elrs = null;
-crossfirePop = null;
-crossfireFlush = null;
-multiret = null;
-pairedport = null;
-statusinterval = null;
-elrsinterval = null;
-comworker = new Worker('worker.js');
-baudselect = document.getElementById('baud');
-connbutton = document.getElementById('connect');
-pairbutton = document.getElementById('pair');
-startbutton = document.getElementById('start');
-statusspan = document.getElementById('crsfstatus');
-popup_status = {
-	'title': null,
-	'message': null,
-	'return': null,
-	'visible': false
-};
-keymap = {}
+    function elrsrun(key = 0) {
+        popup_status.visible = false;
+        if (elrs.run(key) !== 0) {
+            llog('ELRS Lua exited!');
+            crossfireFlush();
+            elrsrefresh(true);
+            elrs = null;
+            return;
+        }
+        ret = multiret('crossfireTelemetryPush');
+        if (ret[1] !== undefined) {
+            comworker.postMessage(['crsfsend', ret[1], ret[2]]);
+        }
+        if (popup_status.visible) {
+            llog(`popup ${popup_status.title}: ${popup_status.message}`);
+        }
+    }
 
-const crsfstatus = {
-	hz: 0,
-	shifts: [],
-	reset: function () {
-		this.hz = 0;
-		this.shifts = [];
-	}
-}
+    function elrsrefresh(clear = false) {
+        if (elrsinterval == null) {
+            if (clear) return;
+            elrsinterval = setInterval(elrsrefresh, 100);
+        } else if (clear) {
+            clearInterval(elrsinterval);
+            elrsinterval = null;
+            return;
+        }
+        elrsrun();
+    }
 
-const status = {
-	interval: null,
-	_update: null,
-	bootiters: 0,
-	update: function () {
-		return this._update();
-	},
-	update_main: function () {
-		var sstr = '';
-		if (connbutton.innerHTML != 'connect') {
-			if (crsfstatus.shifts.length > 0) {
-				const sum = crsfstatus.shifts.reduce((partialSum, a) => partialSum + a, 0);
-				const avg = (sum / crsfstatus.shifts.length).toFixed(1);
-				const smin = Math.min(...crsfstatus.shifts);
-				const smax = Math.max(...crsfstatus.shifts);
-				sstr = `hz:${crsfstatus.hz} shift:[${avg} ${smin} ${smax}]`;
-				crsfstatus.shifts = [];
-			} else {
-				sstr = `hz:${crsfstatus.hz}`;
-			}
-		}
-		statusspan.innerHTML = sstr;
-	},
-	update_boot: function () {
-		if (crsfstatus.shifts.length > 0) {
-			this._update = this.update_main;
-		} else {
-			this.bootiters++;
-			if (this.bootiters > 3) {
-				llog('Unresponsive CRSF, disconnecting...');
-				comworker.postMessage(["stop"]);
-			} else if (this.bootiters > 1) {
-				llog('No CRSF response in >5 seconds');
-			}
-		}
-		return this.update_main();
-	},
-	reset: function () {
-		if (this.interval != null) {
-			clearInterval(this.interval);
-			this.interval = null;
-		}
-		crsfstatus.reset();
-		this._update = this.update_boot;
-		this.bootiters = 0;
-	},
-	start: function () {
-		if (this.interval == null) {
-			this.interval = setInterval(this.update.bind(this), 5000);
-		}
-	}
-}
-status.reset();
+    async function boot() {
+        const lua = await wasmoon.factory.createEngine();
+        window.lua = lua;
+        lua.global.set('getTime', get_uptime);
 
-const workermsg = {
-	'started': function (data) {
-		llog("serial worker started");
-		connbutton.innerHTML = 'disconnect';
-		baudselect.disabled = true;
-		status.start();
-	},
-	'stopped': function (data) {
-		llog("serial worker stopped");
-		connbutton.innerHTML = 'connect';
-		startbutton.disabled = true;
-		baudselect.disabled = false;
-		crossfireFlush();
-		status.reset();
-		elrsrefresh(true);
-		elrs = null;
-	},
-	'writeburn': function (data) {
-		comworker.postMessage(data);
-	},
-	'log': function (data) {
-		llog(data[1]);
-	},
-	'sync': function (data) {
-		var quickupd = false;
-		if (data[1] != crsfstatus.hz) {
-			crsfstatus.hz = data[1];
-			quickupd = true;
-		}
-		if (data.length > 2) crsfstatus.shifts.push(data[2]);
-		if (quickupd) status.update();
-	},
-	'start': function (data) {
-		llog('starting ELRS');
-		elrs = elrs_load();
-		elrs.init();
-		elrsrefresh();
-		startbutton.disabled = false;
-	},
-	'crsfrecv': function (data) {
-		var cmd = data[1];
-		var d = data[2];
-		crossfirePop(cmd, d);
-	}
-};
+        $('script[type^="application/lua"], script[type^="text/lua"]').each((i, tag) => try_tag(tag));
 
-window.addEventListener("load", boot);
-comworker.addEventListener("message", (e) => { return workermsg[e.data[0]](e.data); });
-document.addEventListener('keydown', (ev) => {
-	let key = keymap[ev.which];
-	if (key === undefined) return true;
-	ev.preventDefault();
-	if (elrs == null) return false;
-	if (ev.which == 13) { // ENTER
-		popup_status.return = "OK";
-	} else if (ev.which == 27) { // ESCAPE
-		popup_status.return = "CANCEL";
-	}
-	elrsrun(key);
-	return false;
-});
-document.querySelector('script[src="elrsV3.lua"]').addEventListener(
-	'load',
-	(ev) => {
-		if (elrs_load === true) {
-			console.debug('elrs_load=1 notboot');
-			elrs_load = window.lua.doStringSync('return loadelrs()');
-		} else {
-			elrs_load = true;
-		}
-	}
-);
+        if (elrs_load === true) {
+            console.debug('elrs_load=1 boot');
+            elrs_load = await window.lua.doString('return loadelrs()');
+        } else {
+            elrs_load = true;
+        }
 
-navigator.serial.addEventListener("connect", (e) => {
-	const info = e.target.getInfo();
-	const str = portstr(info);
-	llog(`paired device ${str} attached`);
-	loadpairedports(false);
-});
-navigator.serial.addEventListener("disconnect", (e) => {
-	const info = e.target.getInfo();
-	const str = portstr(info);
-	llog(`paired device ${str} detached`);
-	loadpairedports(false);
-});
+        crossfirePop = lua.global.get('crossfireTelemetryPop');
+        crossfireFlush = lua.global.get('crossfireTelemetryFlush');
+        multiret = lua.global.get('multiret');
 
-pairbutton.addEventListener("click", () => {
-	if (pairedport != null) {
-		pairedport.port.forget().then(() => {
-			llog(`device ${pairedport.info} unpaired`);
-			loadpairedports();
-		});
-	} else {
-		navigator.serial.requestPort().then((port) => {
-			const info = port.getInfo();
-			const str = portstr(info);
-			llog(`device ${str} paired`);
-			loadpairedports(false);
-		}).catch((e) => {
-			if (e.name == 'NotFoundError') return;
-			throw(e);
-		});
-	}
-});
+        const $logelem = $('#log');
+        if ($logelem.length) {
+            llog = function (msg) {
+                const tm = get_uptime();
+                $logelem.append(`${tm} ${msg}\n`);
 
-connbutton.addEventListener("click", () => {
-	if (pairedport == null) return;
-	if (connbutton.innerHTML == 'connect') {
-		comworker.postMessage(["start", baudselect.value]);
-		connbutton.innerHTML = 'connecting...';
-	} else {
-		comworker.postMessage(["stop"]);
-	}
-});
+                // 自动滚动到底部
+                $logelem.scrollTop($logelem[0].scrollHeight);
 
-startbutton.addEventListener('click', () => {
-	llog('(re)starting ELRS');
-	if (elrs != null) {
-		crossfireFlush();
-		elrsrefresh(true);
-		elrs = null;
-	}
-	elrs = elrs_load();
-	elrs.init();
-	elrsrefresh();
-});
+                // 自动清理，保留最近500行日志
+                const lines = $logelem.text().split('\n');
+                if (lines.length > 500) {
+                    $logelem.text(lines.slice(-500).join('\n'));
+                }
+            }
+        }
+
+        loadpairedports();
+        lcd.ctx = $('#lcd')[0].getContext('2d');
+        lcd.clear();
+
+        // 使用jQuery简化属性获取
+        const lcdProps = ['INVERS', 'RIGHT', 'CENTER', 'BOLD', 'BLINK', 'SOLID', 'BLACK', 'WHITE', 'CUSTOM_COLOR'];
+        lcdProps.forEach(prop => lcd[prop] = lua.global.get(prop));
+
+        lua.global.set('lcd', lcd);
+        lua.global.set('popupConfirmation', edgetx_popupConfirmation);
+
+        // 设置键盘映射
+        const keyMappings = {
+            13: 'EVT_VIRTUAL_ENTER', // Enter
+            39: 'EVT_VIRTUAL_ENTER', // Right
+            76: 'EVT_VIRTUAL_ENTER', // l
+            8: 'EVT_VIRTUAL_EXIT',   // Backspace
+            27: 'EVT_VIRTUAL_EXIT',  // Escape
+            37: 'EVT_VIRTUAL_EXIT',  // Left
+            72: 'EVT_VIRTUAL_EXIT',  // h
+            38: 'EVT_VIRTUAL_PREV',  // Up
+            74: 'EVT_VIRTUAL_PREV',  // j
+            40: 'EVT_VIRTUAL_NEXT',  // Down
+            75: 'EVT_VIRTUAL_NEXT'   // k
+        };
+
+        Object.entries(keyMappings).forEach(([key, value]) => {
+            keymap[key] = lua.global.get(value);
+        });
+    }
+
+    elrs_load = null;
+    elrs = null;
+    crossfirePop = null;
+    crossfireFlush = null;
+    multiret = null;
+    pairedport = null;
+    statusinterval = null;
+    elrsinterval = null;
+    comworker = new Worker('worker.js');
+
+    // 使用jQuery选择器代替getElementById
+    const $baudselect = $('#baud');
+    const $connbutton = $('#connect');
+    const $pairbutton = $('#pair');
+    const $startbutton = $('#start');
+    const $statusspan = $('#crsfstatus');
+    popup_status = {
+        'title': null,
+        'message': null,
+        'return': null,
+        'visible': false
+    };
+    keymap = {}
+
+    const crsfstatus = {
+        hz: 0,
+        shifts: [],
+        reset: function () {
+            this.hz = 0;
+            this.shifts = [];
+        }
+    }
+
+    const status = {
+        interval: null,
+        _update: null,
+        bootiters: 0,
+        update: function () {
+            return this._update();
+        },
+        update_main: function () {
+            var sstr = '';
+            if ($connbutton.html() !== '连接') {
+                if (crsfstatus.shifts.length > 0) {
+                    const sum = crsfstatus.shifts.reduce((partialSum, a) => partialSum + a, 0);
+                    const avg = (sum / crsfstatus.shifts.length).toFixed(1);
+                    const smin = Math.min(...crsfstatus.shifts);
+                    const smax = Math.max(...crsfstatus.shifts);
+                    sstr = `hz:${crsfstatus.hz} shift:[${avg} ${smin} ${smax}]`;
+                    crsfstatus.shifts = [];
+                } else {
+                    sstr = `hz:${crsfstatus.hz}`;
+                }
+            }
+            $statusspan.html(sstr);
+        },
+        update_boot: function () {
+            if (crsfstatus.shifts.length > 0) {
+                this._update = this.update_main;
+
+            } else {
+                this.bootiters++;
+                if (this.bootiters > 3) {
+                    llog('Unresponsive CRSF, disconnecting...');
+                    comworker.postMessage(["stop"]);
+                } else if (this.bootiters > 1) {
+                    llog('No CRSF response in >5 seconds');
+                }
+            }
+            return this.update_main();
+        },
+        reset: function () {
+            if (this.interval != null) {
+                clearInterval(this.interval);
+                this.interval = null;
+            }
+            crsfstatus.reset();
+            this._update = this.update_boot;
+            this.bootiters = 0;
+        },
+        start: function () {
+            if (this.interval == null) {
+                this.interval = setInterval(this.update.bind(this), 5000);
+            }
+        }
+    }
+    status.reset();
+
+    const workermsg = {
+        'started': function () {
+            llog("serial worker started");
+            $connbutton.html('断开连接').prop('disabled', false);
+            $startbutton.prop('disabled', true);
+            $baudselect.prop('disabled', true);
+            status.start();
+        },
+        'stopped': function () {
+            llog("serial worker stopped");
+            $connbutton.html('连接').prop('disabled', false);
+            $startbutton.prop('disabled', true);
+            $baudselect.prop('disabled', false);
+            crossfireFlush();
+            status.reset();
+            elrsrefresh(true);
+            elrs = null;
+        },
+        'writeburn': function (data) {
+            comworker.postMessage(data);
+        },
+        'log': function (data) {
+            llog(data[1]);
+        },
+        'sync': function (data) {
+            let quickupd = false;
+            if (data[1] !== crsfstatus.hz) {
+                crsfstatus.hz = data[1];
+                quickupd = true;
+            }
+            if (data.length > 2) crsfstatus.shifts.push(data[2]);
+            if (quickupd) status.update();
+        },
+        'start': function () {
+            llog('starting ELRS');
+            elrs = elrs_load();
+            elrs.init();
+            elrsrefresh();
+            $startbutton.prop('disabled', false);
+        },
+        'crsfrecv': function (data) {
+            const [cmd, d] = [data[1], data[2]];
+            crossfirePop(cmd, d);
+        }
+    };
+
+    window.addEventListener("load", boot);
+    comworker.addEventListener('message', (e) => workermsg[e.data[0]](e.data));
+    $(document).on('keydown', (ev) => {
+        let key = keymap[ev.which];
+        if (key === undefined) return true;
+        ev.preventDefault();
+        if (elrs == null) return false;
+        if (ev.which === 13) { // ENTER
+            popup_status.return = "OK";
+        } else if (ev.which === 27) { // ESCAPE
+            popup_status.return = "CANCEL";
+        }
+        elrsrun(key);
+        return false;
+    });
+    $('script[src="elrsV3.lua"]').on('load', () => {
+        if (elrs_load === true) {
+            console.debug('elrs_load=1 notboot');
+            elrs_load = window.lua.doStringSync('return loadelrs()');
+        } else {
+            elrs_load = true;
+        }
+    });
+
+    navigator.serial.addEventListener("connect", (e) => {
+        const info = e.target.getInfo();
+        const str = portstr(info);
+        llog(`paired device ${str} attached`);
+        loadpairedports(false);
+    });
+    navigator.serial.addEventListener("disconnect", (e) => {
+        const info = e.target.getInfo();
+        const str = portstr(info);
+        llog(`paired device ${str} detached`);
+        loadpairedports(false);
+    });
+
+    $pairbutton.on('click', () => {
+        if (pairedport != null) {
+            pairedport.port.forget().then(() => {
+                llog(`device ${pairedport.info} unpaired`);
+                loadpairedports();
+            });
+        } else {
+            navigator.serial.requestPort().then((port) => {
+                const info = port.getInfo();
+                const str = portstr(info);
+                llog(`device ${str} paired`);
+                loadpairedports(false);
+            }).catch((e) => {
+                if (e.name === 'NotFoundError') return;
+                throw (e);
+            });
+        }
+    });
+
+    $connbutton.on('click', () => {
+        if (pairedport == null) return;
+        if ($connbutton.html() === '连接') {
+            comworker.postMessage(["start", $baudselect.val()]);
+            $connbutton.html('连接中...');
+        } else {
+            comworker.postMessage(["stop"]);
+        }
+    });
+
+    $startbutton.on('click', () => {
+        llog('(re)starting ELRS');
+        if (elrs != null) {
+            crossfireFlush();
+            elrsrefresh(true);
+            elrs = null;
+        }
+        elrs = elrs_load();
+        elrs.init();
+        elrsrefresh();
+    });
 </script>
 </html>
